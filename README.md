@@ -1,5 +1,7 @@
 # 世界杯点球大战 3D
 
+**🎮 在线试玩: https://foxcss.github.io/world-cup-penalty-3d/** (改动后运行 `./deploy.sh` 重新发布)
+
 单文件 three.js 网页游戏:选一支由球星领衔的国家队,打穿 1/4决赛 → 半决赛 → 决赛,捧起大力神杯。
 
 ## 运行

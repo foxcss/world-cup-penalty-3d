@@ -3,11 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>世界杯点球大战 3D</title>
+<title>世界杯点球大战 3D · World Cup Penalty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { width:100%; height:100%; overflow:hidden; background:#06121f;
-    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; color:#fff;
+    font-family:"Baloo 2","PingFang SC","Hiragino Sans","Microsoft YaHei",system-ui,sans-serif; color:#fff;
     user-select:none; -webkit-user-select:none; touch-action:none; }
   #c { position:fixed; inset:0; display:block; }
 
@@ -16,57 +19,95 @@
   .hidden { opacity:0; pointer-events:none; }
 
   /* ---------- menu ---------- */
-  #menu { background:radial-gradient(ellipse at 50% 30%, rgba(10,40,80,.55), rgba(3,10,20,.92)); }
-  #menu .cup { font-size:clamp(52px,10vw,96px); line-height:1; margin-bottom:6px;
-    filter:drop-shadow(0 10px 30px rgba(255,190,40,.45));
+  #menu { background:
+      radial-gradient(1100px 620px at 50% 18%, rgba(30,90,160,.45), transparent 70%),
+      linear-gradient(180deg, rgba(6,14,30,.88), rgba(4,10,20,.96)); }
+  #menu .cup { font-size:clamp(64px,11vw,110px); line-height:1; margin-bottom:2px;
+    filter:drop-shadow(0 12px 34px rgba(255,190,40,.5));
     animation:cupFloat 3.2s ease-in-out infinite; }
-  @keyframes cupFloat { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-12px) rotate(3deg)} }
-  #menu h1 { font-size:clamp(34px,7vw,72px); font-weight:900; letter-spacing:.08em;
-    background:linear-gradient(110deg,#ffe98a 20%,#fff8d8 38%,#ffb300 52%,#ff7a00 80%);
-    background-size:220% 100%;
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-    text-shadow:0 8px 40px rgba(255,160,0,.25);
-    animation:titleShine 3.6s linear infinite; }
-  @keyframes titleShine { 0%{background-position:120% 0} 100%{background-position:-120% 0} }
-  #menu .sub { margin-top:10px; font-size:clamp(13px,2.2vw,18px); color:#9fc3e8; letter-spacing:.5em; text-indent:.5em; }
-  #menu .feat { margin-top:22px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-  #menu .feat span { font-size:12px; color:#cfe6ff; background:rgba(255,255,255,.07);
-    border:1px solid rgba(255,255,255,.15); padding:5px 14px; border-radius:20px; }
-  #langSel { margin-top:26px; display:flex; gap:8px; }
-  #langSel button { padding:7px 20px; border-radius:20px; cursor:pointer; font-size:13px; font-weight:700;
-    color:#9fc3e8; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18); }
-  #langSel button.on { color:#06270e; background:linear-gradient(180deg,#cfe8ff,#8fc7f5);
-    border-color:transparent; box-shadow:0 4px 14px rgba(140,200,255,.3); }
+  @keyframes cupFloat { 0%,100%{transform:translateY(0) rotate(-4deg)} 50%{transform:translateY(-14px) rotate(4deg)} }
+  #menu h1 { font-size:clamp(40px,8vw,84px); font-weight:800; letter-spacing:.02em;
+    color:#ffd93d; transform:rotate(-2deg);
+    text-shadow:0 3px 0 #b4560a, 0 6px 0 rgba(0,0,0,.35), 0 14px 34px rgba(0,0,0,.5);
+    -webkit-text-stroke:2px #7c3a06; paint-order:stroke fill; }
+  #menu .sub { margin-top:12px; font-size:clamp(12px,2vw,16px); color:#eaf4ff; letter-spacing:.5em; text-indent:.5em;
+    background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.18); padding:6px 22px; border-radius:30px; font-weight:700; }
+  #menu .feat { margin-top:28px; display:flex; gap:12px; flex-wrap:wrap; justify-content:center; max-width:640px; }
+  #menu .feat span { font-size:13px; font-weight:700; color:#1c2434;
+    border:2.5px solid #1c2434; padding:7px 16px; border-radius:30px;
+    box-shadow:0 3px 0 rgba(0,0,0,.35); }
+  #menu .feat span:nth-child(1) { background:#ffd93d; transform:rotate(-2deg); }
+  #menu .feat span:nth-child(2) { background:#7dffab; transform:rotate(1.5deg); }
+  #menu .feat span:nth-child(3) { background:#8fd0ff; transform:rotate(-1deg); }
+  #menu .feat span:nth-child(4) { background:#ff9ad5; transform:rotate(2deg); }
+  #langSel { margin-top:30px; display:flex; gap:10px; }
+  #langSel button { padding:9px 22px; border-radius:26px; cursor:pointer;
+    font-size:14px; font-weight:700; color:#cfe0f5; background:rgba(255,255,255,.08);
+    border:2.5px solid rgba(255,255,255,.22); transition:all .12s; font-family:inherit; }
+  #langSel button:hover { background:rgba(255,255,255,.16); transform:translateY(-2px); }
+  #langSel button.on { color:#12233d; background:#fff; border-color:#fff;
+    box-shadow:0 4px 0 rgba(0,0,0,.35); }
   #langSel button:active { transform:scale(.94); }
-  .bigbtn { margin-top:46px; padding:16px 64px; font-size:clamp(16px,2.6vw,22px); font-weight:800;
-    color:#06270e; background:linear-gradient(180deg,#7dff9b,#1ed760 60%,#0fae47);
-    border:none; border-radius:50px; cursor:pointer; letter-spacing:.2em; text-indent:.2em;
-    box-shadow:0 10px 30px rgba(30,215,96,.35), inset 0 2px 0 rgba(255,255,255,.5); }
-  .bigbtn:active { transform:scale(.96); }
-  .bigbtn:disabled { filter:grayscale(.9) brightness(.6); cursor:not-allowed; }
+  .bigbtn { margin-top:34px; padding:17px 66px; font-family:inherit;
+    font-size:clamp(18px,2.8vw,24px); font-weight:800; color:#fff; letter-spacing:.14em; text-indent:.14em;
+    background:linear-gradient(180deg,#4ade80,#16a34a); border:3px solid #0c3d20; border-radius:60px; cursor:pointer;
+    text-shadow:0 2px 0 rgba(0,0,0,.3);
+    box-shadow:0 7px 0 #0a5c2e, 0 16px 30px rgba(0,0,0,.45), inset 0 3px 0 rgba(255,255,255,.35);
+    transition:all .12s; animation:btnPulse 2.2s ease-in-out infinite; }
+  @keyframes btnPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.035)} }
+  .bigbtn:hover { transform:translateY(-3px) scale(1.03); animation:none; }
+  .bigbtn:active { transform:translateY(4px); box-shadow:0 3px 0 #0a5c2e, 0 8px 16px rgba(0,0,0,.4); animation:none; }
+  .bigbtn:disabled { filter:grayscale(.85) brightness(.65); cursor:not-allowed; animation:none; }
 
   /* ---------- select ---------- */
-  #select { background:linear-gradient(180deg, rgba(4,14,26,.96), rgba(6,20,38,.96)); justify-content:flex-start; padding:max(18px,env(safe-area-inset-top)) 14px 14px; overflow-y:auto; touch-action:pan-y; }
-  #select h2 { font-size:clamp(18px,3.4vw,26px); font-weight:900; margin:6px 0 2px; }
-  #select .tip { color:#8fb8de; font-size:13px; margin-bottom:14px; }
-  #roster { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;
-    width:min(860px,100%); }
-  .card { background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.12); border-radius:14px;
-    padding:10px 12px; cursor:pointer; transition:all .15s; position:relative; }
-  .card:hover { background:rgba(255,255,255,.12); }
-  .card.sel { border-color:#1ed760; background:rgba(30,215,96,.16);
-    box-shadow:0 0 18px rgba(30,215,96,.25); }
-  .card .nm { font-size:17px; font-weight:800; }
-  .card .fl { float:right; font-size:18px; }
-  .card .st { margin-top:7px; font-size:11px; color:#9fc3e8; display:flex; flex-direction:column; gap:4px; }
-  .bar { height:5px; border-radius:3px; background:rgba(255,255,255,.12); overflow:hidden; }
-  .bar i { display:block; height:100%; border-radius:3px; background:linear-gradient(90deg,#ffd25e,#ff8a3c); }
+  #select { justify-content:flex-start; padding:max(20px,env(safe-area-inset-top)) 16px 40px; overflow-y:auto; touch-action:pan-y;
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.022) 0 26px, transparent 26px 52px),
+      radial-gradient(900px 500px at 50% 0%, rgba(30,90,160,.35), transparent 70%),
+      linear-gradient(180deg, rgba(5,12,26,.94), rgba(6,16,34,.97)); }
+  #select h2 { font-size:clamp(26px,4.6vw,40px); font-weight:800;
+    margin:8px 0 6px; color:#fff; transform:rotate(-1.2deg);
+    text-shadow:0 3px 0 rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.45); }
+  #select .tip { color:#a9c6e8; font-size:13px; margin-bottom:20px; background:rgba(255,255,255,.07);
+    border:1.5px solid rgba(255,255,255,.14); padding:6px 18px; border-radius:24px; }
+  #roster { display:grid; grid-template-columns:repeat(auto-fill,minmax(176px,1fr)); gap:16px;
+    width:min(980px,100%); }
+  .card { background:#fbf6ea; border:3px solid #1d2739; border-radius:20px;
+    padding:0 0 12px; cursor:pointer; position:relative; overflow:hidden; text-align:center; color:#2a3548;
+    box-shadow:0 6px 0 rgba(0,0,0,.35); transition:transform .15s, box-shadow .15s; }
+  .card:hover { transform:translateY(-6px) rotate(-1deg); box-shadow:0 12px 0 rgba(0,0,0,.28); }
+  .card.sel { border-color:#0ca85c; transform:translateY(-4px);
+    box-shadow:0 0 0 3.5px #35ffa0, 0 10px 0 rgba(0,0,0,.28); }
+  .card.sel::after { content:'✓'; position:absolute; top:8px; right:8px; width:30px; height:30px; border-radius:50%;
+    background:#1ed760; color:#fff; font-size:18px; font-weight:900; line-height:26px;
+    border:2.5px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.35); }
+  .cardTop { height:88px; display:flex; align-items:flex-end; justify-content:center;
+    background:linear-gradient(160deg, var(--tc) 0%, var(--tc) 55%, rgba(0,0,0,.28) 140%);
+    border-bottom:3px solid #1d2739; position:relative; }
+  .cardTop .fl { position:absolute; top:7px; left:9px; font-size:24px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+  .bean { position:relative; width:48px; height:64px; margin-bottom:-3px;
+    background:var(--tc); border:3px solid #202a3c;
+    border-radius:24px 24px 15px 15px / 32px 32px 14px 14px;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.3)); }
+  .bean .beye { position:absolute; top:15px; width:12px; height:14px; background:#fff;
+    border-radius:50%; border:1.5px solid #223; }
+  .bean .beye.l { left:8px; } .bean .beye.r { right:8px; }
+  .bean .beye::after { content:''; position:absolute; right:2px; top:4px; width:5px; height:5px;
+    background:#1a2130; border-radius:50%; }
+  .bean .bshorts { position:absolute; bottom:-1px; left:-1px; right:-1px; height:15px;
+    background:var(--ts); border-top:2.5px solid rgba(255,255,255,.85); border-radius:0 0 12px 12px; }
+  .card .nm { font-size:19px; font-weight:800; margin-top:8px; letter-spacing:.01em; }
+  .card .star { color:#7b8699; font-size:12.5px; font-weight:700; }
+  .card .st { margin:8px 12px 0; display:flex; flex-direction:column; gap:5px; }
+  .strow { display:flex; align-items:center; gap:6px; font-size:12px; }
+  .strow b { min-width:22px; text-align:right; font-size:12.5px; color:#2a3548; }
+  .bar { flex:1; height:9px; border-radius:6px; background:#e6dfd0; overflow:hidden; border:1.5px solid #d5ccb8; }
+  .bar i { display:block; height:100%; border-radius:6px; background:linear-gradient(90deg,#ffc93d,#ff8a3c); }
   .bar.acc i { background:linear-gradient(90deg,#6ee7ff,#3b82f6); }
-  .card .order { position:absolute; top:-9px; left:-9px; width:24px; height:24px; border-radius:50%;
-    background:#1ed760; color:#06270e; font-weight:900; font-size:13px;
-    display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.5); }
-  #selCount { margin:14px 0 4px; font-size:14px; color:#cfe6ff; }
-  .card .star { color:#cfe6ff; font-size:13px; margin-top:2px; font-weight:600; }
+  .card .perk { margin-top:9px; font-size:11.5px; font-weight:800; color:#7a4b00;
+    background:linear-gradient(180deg,#ffe9a3,#ffce4d); border:2px solid #c98f1b;
+    border-radius:14px; padding:3px 12px; display:inline-block; box-shadow:0 2px 0 rgba(0,0,0,.2); }
+  #selCount { margin:18px 0 4px; font-size:16px; font-weight:700; color:#eaf4ff; }
 
   #stageTag { position:fixed; top:max(10px,env(safe-area-inset-top)); left:14px;
     background:rgba(255,210,94,.12); border:1px solid rgba(255,210,94,.45); color:#ffd25e;
@@ -75,10 +116,6 @@
     background:rgba(127,253,224,.1); border:1px solid rgba(127,253,224,.4); color:#9ff5df;
     font-weight:800; font-size:13px; padding:6px 14px; border-radius:18px; z-index:11; }
   #wind.strong { background:rgba(255,140,60,.14); border-color:rgba(255,150,60,.6); color:#ffc08a; }
-  .card .perk { margin-top:6px; font-size:11px; font-weight:800; color:#ffd25e;
-    background:rgba(255,210,94,.1); border:1px solid rgba(255,210,94,.35);
-    border-radius:10px; padding:3px 8px; display:inline-block; }
-
   /* ---------- VS 对阵卡 ---------- */
   #vsCard { position:fixed; inset:0; z-index:22; display:flex; align-items:center; justify-content:center;
     gap:clamp(18px,5vw,54px); background:rgba(2,8,16,.82); backdrop-filter:blur(10px);
@@ -240,7 +277,7 @@
   <div class="sub">3D PENALTY SHOOTOUT</div>
   <div class="feat"><span id="feat1"></span><span id="feat2"></span><span id="feat3"></span><span id="feat4"></span></div>
   <div id="langSel">
-    <button data-l="zh">中文</button><button data-l="en">English</button><button data-l="ja">日本語</button>
+    <button data-l="en">🇬🇧 English</button><button data-l="zh">🇨🇳 中文</button><button data-l="ja">🇯🇵 日本語</button>
   </div>
   <button class="bigbtn" id="btnStart">开始游戏</button>
 </div>
@@ -312,7 +349,7 @@ const TEAMS = [
 const STAGE_NAMES = ['1/4 决赛', '半决赛', '决赛'];
 
 /* ============================== 多语言 (中/英/日) ============================== */
-let LANG = localStorage.getItem('pk_lang') || 'zh';
+let LANG = localStorage.getItem('pk_lang') || 'en';   // 线上默认英文,可切换
 const LI = () => ({ zh:0, en:1, ja:2 }[LANG] ?? 0);
 // 专有名词译名:中文键 → [英, 日]
 const XN = {
@@ -1136,11 +1173,19 @@ function buildTeams() {
   for (const t of TEAMS) {
     const c = document.createElement('div');
     c.className = 'card'; c.dataset.id = t.id;
-    c.innerHTML = `<span class="fl">${t.flag}</span><div class="nm">${tName(t.country)}</div>
+    const hx = c6 => '#' + c6.toString(16).padStart(6, '0');
+    c.style.setProperty('--tc', hx(t.jersey));
+    c.style.setProperty('--ts', hx(t.shorts));
+    c.innerHTML = `
+      <div class="cardTop">
+        <span class="fl">${t.flag}</span>
+        <div class="bean"><div class="beye l"></div><div class="beye r"></div><div class="bshorts"></div></div>
+      </div>
+      <div class="nm">${tName(t.country)}</div>
       <div class="star">⭐ ${tName(t.star)}</div>
       <div class="st">
-        <div>${UI.pow[LI()]} ${t.pow}<div class="bar"><i style="width:${t.pow}%"></i></div></div>
-        <div>${UI.acc[LI()]} ${t.acc}<div class="bar acc"><i style="width:${t.acc}%"></i></div></div>
+        <div class="strow"><span>⚡</span><div class="bar"><i style="width:${t.pow}%"></i></div><b>${t.pow}</b></div>
+        <div class="strow"><span>🎯</span><div class="bar acc"><i style="width:${t.acc}%"></i></div><b>${t.acc}</b></div>
       </div>
       <div class="perk" title="${tPerkDesc(t.perk)}">✨ ${tName(t.perkName)}</div>`;
     c.onclick = () => {
