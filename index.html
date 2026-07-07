@@ -116,6 +116,11 @@
     background:rgba(127,253,224,.1); border:1px solid rgba(127,253,224,.4); color:#9ff5df;
     font-weight:800; font-size:13px; padding:6px 14px; border-radius:18px; z-index:11; }
   #wind.strong { background:rgba(255,140,60,.14); border-color:rgba(255,150,60,.6); color:#ffc08a; }
+  #btnSound { position:fixed; top:calc(max(10px,env(safe-area-inset-top)) + 44px); right:14px; z-index:12;
+    width:40px; height:40px; border-radius:50%; cursor:pointer; pointer-events:auto; font-size:17px;
+    background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.22); transition:all .12s; }
+  #btnSound:hover { background:rgba(255,255,255,.16); transform:scale(1.08); }
+  #btnSound.on { background:rgba(30,215,96,.2); border-color:rgba(53,255,160,.6); }
   /* ---------- VS 对阵卡 ---------- */
   #vsCard { position:fixed; inset:0; z-index:22; display:flex; align-items:center; justify-content:center;
     gap:clamp(18px,5vw,54px); background:rgba(2,8,16,.82); backdrop-filter:blur(10px);
@@ -254,6 +259,7 @@
   </div>
   <div id="stageTag" style="display:none"></div>
   <div id="wind"></div>
+  <button id="btnSound" title="Sound">🔇</button>
   <div id="shooterTag" style="display:none"></div>
   <div id="hint" style="display:none"></div>
   <button id="btnStraight">直接射门 ⚡</button>
@@ -490,8 +496,16 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 /* ============================== 音效 (WebAudio 合成) ============================== */
 const AudioMan = {
   ctx:null, crowdGain:null,
+  enabled: localStorage.getItem('pk_sound') === 'on',   // 默认静音,右上角可开
+  toggle() {
+    this.enabled = !this.enabled;
+    localStorage.setItem('pk_sound', this.enabled ? 'on' : 'off');
+    if (this.enabled) { this.init(); this.ctx?.resume(); }
+    else this.ctx?.suspend();
+    return this.enabled;
+  },
   init() {
-    if (this.ctx) return;
+    if (!this.enabled || this.ctx) return;
     try { this.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e) { return; }
     const ctx = this.ctx;
     const len = ctx.sampleRate * 2;
@@ -501,19 +515,20 @@ const AudioMan = {
     for (let i=0;i<len;i++){ const w = Math.random()*2-1; last = (last + 0.02*w)/1.02; d[i] = last*3.5; }
     const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
     const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=620; bp.Q.value=0.45;
-    this.crowdGain = ctx.createGain(); this.crowdGain.gain.value = 0.05;
+    this.crowdGain = ctx.createGain(); this.crowdGain.gain.value = 0.02;
     src.connect(bp).connect(this.crowdGain).connect(ctx.destination);
     src.start();
   },
   swell(peak=0.35, dur=2.2) {
-    if (!this.ctx) return;
+    if (!this.enabled || !this.ctx) return;
+    peak *= 0.55;
     const g = this.crowdGain.gain, t = this.ctx.currentTime;
     g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
     g.linearRampToValueAtTime(peak, t+0.12);
-    g.exponentialRampToValueAtTime(0.05, t+dur);
+    g.exponentialRampToValueAtTime(0.02, t+dur);
   },
   tone(f0, f1, dur, type='sine', vol=0.25) {
-    if (!this.ctx) return;
+    if (!this.enabled || !this.ctx) return;
     const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime;
     o.type = type; o.frequency.setValueAtTime(f0, t);
     o.frequency.exponentialRampToValueAtTime(Math.max(1,f1), t+dur);
@@ -1229,6 +1244,12 @@ function applyLang() {
 for (const b of document.querySelectorAll('#langSel button')) {
   b.onclick = () => { AudioMan.init(); AudioMan.tick(); LANG = b.dataset.l; applyLang(); };
 }
+function refreshSoundBtn() {
+  $('btnSound').textContent = AudioMan.enabled ? '🔊' : '🔇';
+  $('btnSound').classList.toggle('on', AudioMan.enabled);
+}
+$('btnSound').onclick = () => { AudioMan.toggle(); AudioMan.tick(); refreshSoundBtn(); };
+refreshSoundBtn();
 
 /* ============================== 射门核心逻辑 ============================== */
 let kickAnim = null;   // {t, dur, phase...}
