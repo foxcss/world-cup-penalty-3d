@@ -415,16 +415,22 @@ const UI = {
   powerLbl:  ['力 度','P O W E R','パワー'],
   comboLbl:  ['连击','COMBO','連撃'],
   windLbl:   ['风','Wind','風'],
-  hintAim:   ['移动选择射门落点 · 点击锁定','Move to aim · Click to lock','移動して狙いを定め、クリックで確定'],
+  hintAim:   ['移动选择射门落点 · 准星会晃动,点击时机要抓准!','Move to aim · The reticle sways — time your click!','狙いを定めろ · 照準が揺れる、タイミングが命!'],
   hintCurve: ['左右移动 = 调整香蕉弧线,虚线是球路预览 · 点击锁定,或「直接射门」',
               'Move left/right to bend the shot (dots = preview) · Click to lock',
               '左右移動でカーブ調整(光点=軌道)· クリックで確定'],
   hintPower: ['指针停在红区 = 力度与成功率最高 · 红区每球都会变!',
               'Stop in the RED zone for max power · The zone moves every kick!',
               '赤ゾーンで止めろ! · 赤ゾーンは毎回変わる!'],
-  hintDefend:['盯紧提示闪光 · 在他起脚前点击扑救区域!',
-              'Watch for the flash · Click a zone before he strikes!',
-              '閃光を見逃すな · キック前にゾーンをクリック!'],
+  hintPower2:['红区在漂移!盯住它再出手!',
+              'The red zone is DRIFTING — track it before you strike!',
+              '赤ゾーンが動く!見極めて撃て!'],
+  hintDefend:['提示会闪好几次,有真有假 · 起脚前点选扑救区!',
+              'Multiple flashes — some are FAKES · Pick a zone before he strikes!',
+              '閃光は何度も出る、フェイント注意 · キック前にゾーンを選べ!'],
+  readMove:  ['提前移动被看穿!他改打了另一边!',
+              'He saw you move early and went the other way!',
+              '先に動いたのを読まれた!逆を突かれた!'],
   msgWin:    ['赛点!进球终结比赛!','Match point! Score to win!','マッチポイント!決めれば勝利!'],
   msgMust:   ['生死球!必须罚进!','Do or die! You must score!','絶体絶命!外せば終わり!'],
   msgLose:   ['危机!扑不住就出局!','Danger! Save it or go home!','ピンチ!止めなきゃ敗退!'],
@@ -1128,6 +1134,10 @@ const G = {
   powerSpeed:130,        // 赛点压力下力度槽加速
   redLo:RED_LO, redHi:RED_HI,   // 本球红区(每球随机位置/宽度)
   wind:0,                // 本球横风 m/s(正=吹向画面右侧)
+  swayAmp:0, swaySeed:0, swayX:0, swayY:0,   // 准星漂移(点击那一刻的位置才算数)
+  redBase:RED_LO, redW:RED_HI-RED_LO,        // 红区漂移基准位置/宽度
+  redDriftAmp:0, redDriftSpeed:1.8, redDriftPhase:0,
+  runStart:0, defendAt:0,                    // 防守:助跑开始/选区时刻(选太早会被读)
   panenka:false,         // 本球选择勺子吊射
   keeperDistracted:false,// 门将开小差(随机事件)
   statSaves:0, statGoals:0, statKicks:0,   // 整届杯赛累计数据
@@ -1148,6 +1158,15 @@ function moveCam(view, dur=1.1) {
 }
 const VIEW_SHOOT  = { pos:[0, 2.4, SPOT_Z + 6.8], look:[0, 1.0, 0], fov:30 };
 const VIEW_DEFEND = { pos:[0, 3.8, -8.2], look:[0, 0.9, SPOT_Z], fov:46 };
+// 防守机位每球随机:高低/左右/焦距都会变,别指望固定视角
+function rollDefendView() {
+  const side = rnd(-1, 1);
+  return {
+    pos:[side * 3.4, rnd(2.6, 5.0), rnd(-9.8, -6.8)],
+    look:[-side * 0.7, rnd(0.55, 1.25), SPOT_Z],
+    fov: rnd(41, 53),
+  };
+}
 const VIEW_INTRO  = { pos:[14, 7, 30], look:[0, 1, 6], fov:55 };
 
 /* ============================== UI ============================== */
@@ -1441,8 +1460,8 @@ function resetKeeper() {
   keeper.group.rotation.set(0, 0, 0);      // 模型面朝 +z = 正对罚球点
   keeper.play('idle', { fade:.15 });
 }
-function startKickAnim(onKick, dur=0.62, power=70, slip=false) {
-  kickAnim = { t:0, dur, phase:'run', kicked:false, onKick, power, slip };
+function startKickAnim(onKick, dur=0.62, power=70, slip=false, stut=null) {
+  kickAnim = { t:0, dur, phase:'run', kicked:false, onKick, power, slip, stut };
   shooter?.play(dur > 1 ? 'slow_run' : 'fast_run', { fade:.15 });
   if (slip) setTimeout(() => { showMsg(t('slip'), '#ffb86b', 900); emoteShooter.show('😵'); AudioMan.tone(500,120,.2,'sawtooth',.2); }, dur * 420);
 }
@@ -1480,7 +1499,16 @@ const windDriftFor = T => 0.5 * G.wind * T * T;
 function rollPowerBar() {
   const width = Math.max(7, rnd(15, 19) - G.stage * 3.5);   // 决赛红区更窄
   const lo = rnd(50, 92 - width);
+  G.redW = width; G.redBase = lo;
   G.redLo = lo; G.redHi = lo + width;
+  // 半决赛起红区还会左右漂移,出手时机更难拿捏
+  G.redDriftAmp = G.stage >= 1 ? rnd(2.5, 5) + G.stage * 1.5 : 0;
+  G.redDriftSpeed = rnd(1.3, 2.3);
+  G.redDriftPhase = rnd(0, Math.PI * 2);
+  paintPowerBar();
+}
+function paintPowerBar() {
+  const lo = G.redLo, width = G.redW;
   const bar = $('powerBar');
   bar.style.background = `linear-gradient(90deg,
     #2c3e50 0%, #2c3e50 ${Math.max(0,lo-30)}%,
@@ -1738,6 +1766,11 @@ async function playerTurn(team) {
   // 本球环境:随机横风(预览线会显示球被吹弯的路径)
   rollWind();
 
+  // 准星漂移:阶段越深、压力越大,手越不稳
+  G.swaySeed = rnd(0, 100);
+  G.swayAmp = 0.12 + G.stage * 0.07 + (pressure ? 0.07 : 0);
+  G.swayX = G.swayY = 0;
+
   // 门将读招:赛前展示重心偏移(决赛阶段更常使诈)
   const lean = Math.random() < 0.68 ? (Math.random() < 0.5 ? -1 : 1) : 0;
   G.keeperTell = { lean, honest: Math.random() < [0.88, 0.72, 0.55][G.stage] };
@@ -1780,7 +1813,7 @@ async function playerTurn(team) {
     rollPowerBar();
     G.state = 'POWER'; G.powerActive = true; G.power = 0; G.powerDir = 1;
     $('powerWrap').classList.add('on');
-    setHint(t('hintPower'));
+    setHint(G.redDriftAmp ? t('hintPower2') : t('hintPower'));
     await waitFor(() => !G.powerActive);
     $('powerWrap').classList.remove('on');
     previewLine.visible = false;
@@ -1841,7 +1874,8 @@ async function aiTurn(team) {
 
   setShooterTag(tf('tagDefend', team.flag, tName(player.name)));
   rollWind();                                  // 对方也在同样的风里踢
-  await moveCam(VIEW_DEFEND, 1.1);
+  const dView = rollDefendView();              // 防守机位每球随机
+  await moveCam(dView, 1.1);
 
   // 防守压力:对方赛点
   if (kickPressure(false) === 'LOSE') {
@@ -1850,21 +1884,36 @@ async function aiTurn(team) {
     await wait(1100);
   }
 
-  // 反应式扑救:射手开始助跑,期间会闪现提示,起脚前点选扑救区
+  // 反应式扑救:射手开始助跑,期间闪现多次提示(真假混杂),起脚前点选扑救区
   const plan = aiPlanShot(player, G.stage);
-  G.state = 'DEFEND'; G.defendZone = null; G.defendMesh = null;
+  G.state = 'DEFEND'; G.defendZone = null; G.defendMesh = null; G.defendAt = 0;
   zoneGroup.visible = true;
   resetZoneStyles();
   setHint(t('hintDefend'));
 
-  const RUN = 1.75;
+  const RUN = rnd(1.55, 2.15);                 // 助跑时长每球随机
+  // 助跑中途可能有一个停顿假动作(阶段越深越爱玩)
+  const stut = Math.random() < 0.3 + G.stage * 0.2
+    ? { at: rnd(0.35, 0.65), dur: rnd(0.18, 0.4) } : null;
   let kicked = false;
-  startKickAnim(() => { kicked = true; }, RUN, 55 + plan.q * 40);
-  // 闪现提示:决赛阶段可能是假动作
-  const truthProb = [1, 0.75, 0.6][G.stage];
-  const flashZone = Math.random() < truthProb ? plan.zone : randomOtherZone(plan.zone);
-  const flashDur = [0.55, 0.42, 0.34][G.stage];
-  setTimeout(() => { if (!kicked) showFlash(flashZone, flashDur); }, RUN * rnd(0.3, 0.5) * 1000);
+  G.runStart = performance.now();
+  startKickAnim(() => { kicked = true; }, RUN, 55 + plan.q * 40, false, stut);
+  // 助跑期间镜头缓缓推近,施压
+  moveCam({ pos:[dView.pos[0] * 0.8, dView.pos[1] - rnd(0.2, 0.6), dView.pos[2] + rnd(0.7, 1.5)],
+            look: dView.look, fov: dView.fov - rnd(2, 5) }, RUN + (stut ? stut.dur : 0) + 0.6);
+  // 闪现提示:闪 2~4 次,只有其中一次可能是真落点(阶段越深越会骗人)
+  const truthProb = [0.95, 0.75, 0.6][G.stage];
+  const nFlash = 2 + (Math.random() < 0.4 + G.stage * 0.25 ? 1 : 0)
+                   + (G.stage === 2 && Math.random() < 0.4 ? 1 : 0);
+  const trueIdx = Math.random() < truthProb
+    ? (Math.random() < 0.6 ? nFlash - 1 : (Math.random() * nFlash) | 0)   // 真提示更常压轴出现
+    : -1;                                                                  // 全是假动作
+  const flashDur = [0.5, 0.4, 0.32][G.stage];
+  for (let i = 0; i < nFlash; i++) {
+    const zone = i === trueIdx ? plan.zone : randomOtherZone(plan.zone);
+    const at = RUN * lerp(0.2, 0.85, (i + rnd(0.1, 0.7)) / nFlash) * 1000;
+    setTimeout(() => { if (!kicked) showFlash(zone, flashDur); }, at);
+  }
 
   await waitFor(() => kicked);
   zoneGroup.visible = false;
@@ -1872,6 +1921,19 @@ async function aiTurn(team) {
   setHint('');
 
   const dz = G.defendZone;
+  // 选区太早会暴露重心:射手(尤其球星/深阶段)可能看到后临时改打另一边
+  if (dz && G.defendAt && !plan.panenka && !plan.frame
+      && (G.defendAt - G.runStart) < RUN * 500) {
+    const readP = 0.2 + G.stage * 0.13 + (player.isStar ? 0.1 : 0);
+    if (Math.random() < readP) {
+      const nz = randomOtherZone(dz);
+      plan.zone = nz;
+      plan.target = { x: clamp(ZONE_X[nz.col] + rnd(-0.5, 0.5), -GOAL_W/2 + .35, GOAL_W/2 - .35),
+                      y: clamp(ZONE_Y[nz.row] + rnd(-0.3, 0.3), 0.15, GOAL_H - .25) };
+      showMsg(t('readMove'), '#ffb86b', 1400);
+      emoteShooter.show('😏');
+    }
+  }
   const result = finalizeAiShot(plan, dz);
   G.state = 'FLIGHT';
   startFlight(plan.target, plan.speed, result, rnd(-0.45, 0.45), plan.windDrift);  // AI 也偶尔来点弧线
@@ -1997,6 +2059,14 @@ function aimFromPointer() {
     reticle.position.set(G.aim.x, G.aim.y, 0.02);
   }
 }
+function lockAim() {
+  // 漂移中的准星:锁定的是此刻晃到的位置,不是鼠标位置
+  G.aim.x = clamp(G.aim.x + G.swayX, -GOAL_W/2 + .15, GOAL_W/2 - .15);
+  G.aim.y = clamp(G.aim.y + G.swayY, 0.18, GOAL_H - .12);
+  reticle.position.set(G.aim.x, G.aim.y, 0.02);
+  G.swayX = G.swayY = 0;
+  G.aimLocked = true;
+}
 function resetZoneStyles() {
   for (const z of zoneMeshes) {
     z.material.map = ZONE_TEX.idle;
@@ -2040,7 +2110,7 @@ addEventListener('pointerdown', e => {
   updatePointer(e);
   if (G.state === 'AIM') {
     aimFromPointer();
-    G.aimLocked = true;
+    lockAim();
   } else if (G.state === 'CURVE') {
     G.curveActive = false; G.curveLocked = true;
   } else if (G.state === 'POWER') {
@@ -2051,6 +2121,7 @@ addEventListener('pointerdown', e => {
     if (hits.length) {
       G.defendZone = hits[0].object.userData;
       G.defendMesh = hits[0].object;
+      G.defendAt = performance.now();
       AudioMan.tick();
       styleZones();
     }
@@ -2058,7 +2129,7 @@ addEventListener('pointerdown', e => {
 });
 addEventListener('keydown', e => {
   if (e.code !== 'Space') return;
-  if (G.state === 'AIM') G.aimLocked = true;
+  if (G.state === 'AIM') lockAim();
   else if (G.state === 'CURVE') { G.curveActive = false; G.curveLocked = true; }
   else if (G.state === 'POWER') G.powerActive = false;
 });
@@ -2194,9 +2265,16 @@ function animate() {
   // 轨迹预览线(弧线/力度阶段实时刷新,光点流动,含风力)
   if (previewLine.visible && (G.state === 'CURVE' || G.state === 'POWER')) updatePreview(dt);
 
-  // 力度槽(赛点压力下更快;红区内发光提示;红区每球随机)
+  // 力度槽(赛点压力下更快;指针速度忽快忽慢;红区每球随机且可能漂移)
   if (G.powerActive) {
-    G.power += G.powerDir * G.powerSpeed * dt;
+    if (G.redDriftAmp) {
+      const off = Math.sin(idleT * G.redDriftSpeed + G.redDriftPhase) * G.redDriftAmp;
+      G.redLo = clamp(G.redBase + off, 2, 98 - G.redW);
+      G.redHi = G.redLo + G.redW;
+      paintPowerBar();
+    }
+    const jitter = 0.82 + 0.36 * Math.sin(idleT * 6.3 + G.swaySeed);
+    G.power += G.powerDir * G.powerSpeed * jitter * dt;
     if (G.power >= 100) { G.power = 100; G.powerDir = -1; }
     if (G.power <= 0)   { G.power = 0;   G.powerDir = 1; }
     $('powerCursor').style.left = `calc(${G.power}% - 3px)`;
@@ -2212,12 +2290,26 @@ function animate() {
     const s = 1 + Math.sin(idleT*6)*0.07;
     reticle.scale.set(s,s,1);
   }
+  // 瞄准漂移:准星围绕鼠标位置晃动,锁定那一刻晃到哪就是哪
+  if (G.state === 'AIM' && G.swayAmp) {
+    const s1 = idleT * 1.9 + G.swaySeed, s2 = idleT * 3.1 + G.swaySeed * 1.7;
+    G.swayX = (Math.sin(s1) * 0.6 + Math.sin(s2 * 1.13 + 1.3) * 0.4) * G.swayAmp;
+    G.swayY = (Math.sin(s1 * 1.35 + 2.1) * 0.55 + Math.sin(s2 + 0.7) * 0.45) * G.swayAmp * 0.75;
+    reticle.position.set(
+      clamp(G.aim.x + G.swayX, -GOAL_W/2 + .15, GOAL_W/2 - .15),
+      clamp(G.aim.y + G.swayY, 0.18, GOAL_H - .12), 0.02);
+  }
 
   // 射门:助跑(跑动动画+位移) → 起脚(三档力度踢球动画,动画中段出球)
   if (kickAnim && shooter) {
     kickAnim.t += dt;
     if (kickAnim.phase === 'run') {
-      const k = clamp(kickAnim.t / kickAnim.dur, 0, 1);
+      let tt = kickAnim.t;
+      if (kickAnim.stut) {   // 助跑中途一个停顿假动作,打乱对出脚时机的预判
+        const at = kickAnim.stut.at * kickAnim.dur;
+        tt = tt < at ? tt : Math.max(at, tt - kickAnim.stut.dur);
+      }
+      const k = clamp(tt / kickAnim.dur, 0, 1);
       const sx = lerp(1.8, 0.32, k), sz = lerp(SPOT_Z + 1.7, SPOT_Z + 0.55, k);
       shooter.group.position.set(sx, 0, sz);
       shooter.group.rotation.y = Math.PI + lerp(-0.5, -0.06, k);   // 渐渐正对球门
