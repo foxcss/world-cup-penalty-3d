@@ -255,6 +255,181 @@
 
   #flash { position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:18; }
 </style>
+<style id="arcade-ui">
+  :root {
+    --ink:#10182b; --navy:#061426; --panel:#10213b; --panel-2:#172b49;
+    --gold:#ffd83d; --green:#55ed8b; --coral:#ff526b; --sky:#6dd4ff; --paper:#fff9e9;
+    --line:3px solid var(--ink); --hard-shadow:6px 6px 0 var(--ink);
+  }
+  button { min-height:44px; font-family:inherit; }
+  button:focus-visible, [role="button"]:focus-visible { outline:4px solid #fff; outline-offset:3px; }
+  .screen { isolation:isolate; }
+
+  #menu { align-items:stretch; padding:max(24px,env(safe-area-inset-top)) clamp(24px,5vw,76px) max(24px,env(safe-area-inset-bottom));
+    background:radial-gradient(circle at 80% 28%,rgba(91,87,255,.3),transparent 26%),
+      linear-gradient(130deg,rgba(4,15,29,.97),rgba(12,33,57,.94)); }
+  #menu::before { content:""; position:absolute; inset:0; z-index:-1; opacity:.1;
+    background-image:radial-gradient(circle,#fff 1px,transparent 1.5px); background-size:18px 18px; }
+  .menu-shell { width:min(1240px,100%); margin:auto; display:grid; grid-template-columns:minmax(440px,1.05fr) minmax(340px,.95fr);
+    align-items:center; gap:clamp(34px,7vw,104px); }
+  .menu-copy { text-align:left; }
+  .eyebrow { display:inline-flex; align-items:center; gap:9px; min-height:32px; padding:4px 12px;
+    color:var(--ink); background:var(--gold); border:var(--line); border-radius:8px; box-shadow:4px 4px 0 var(--ink);
+    font-size:12px; font-weight:900; letter-spacing:.13em; transform:rotate(-1deg); }
+  #menu h1 { max-width:720px; margin:22px 0 0; font-size:clamp(54px,6.6vw,94px); line-height:.86; letter-spacing:-.035em;
+    color:#fff; transform:none; text-wrap:balance; -webkit-text-stroke:0; text-shadow:5px 6px 0 var(--ink), 0 18px 44px rgba(0,0,0,.35); }
+  #menu h1 .accent { color:var(--gold); }
+  #menu .sub { width:fit-content; margin:22px 0 0; padding:0; border:0; border-radius:0; background:none;
+    color:#b9cee7; font-size:14px; letter-spacing:.28em; text-indent:0; }
+  #menu .feat { max-width:680px; margin:26px 0 0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  #menu .feat span { min-height:46px; display:flex; align-items:center; padding:8px 13px; border:2px solid rgba(255,255,255,.19);
+    border-radius:9px; color:#eaf4ff; background:rgba(255,255,255,.07); box-shadow:none; font-size:13px; transform:none!important; }
+  #menu .feat span::before { content:"✓"; display:grid; place-items:center; width:24px; height:24px; margin-right:9px;
+    flex:none; border:2px solid var(--ink); border-radius:50%; background:var(--green); color:var(--ink); font-weight:1000; }
+  .menu-actions { margin-top:28px; display:flex; align-items:center; gap:18px; }
+  .bigbtn { min-height:58px; margin-top:0; padding:13px 34px; border:var(--line); border-radius:10px; background:var(--green);
+    color:var(--ink); box-shadow:var(--hard-shadow); text-shadow:none; font-size:18px; letter-spacing:.08em; animation:none; }
+  .bigbtn:hover { transform:translate(-2px,-2px); box-shadow:8px 8px 0 var(--ink); }
+  .bigbtn:active { transform:translate(4px,4px); box-shadow:2px 2px 0 var(--ink); }
+  #langSel { margin:0; display:flex; gap:6px; padding:5px; border:2px solid rgba(255,255,255,.15); border-radius:10px; background:rgba(4,12,23,.55); }
+  #langSel button { min-width:48px; padding:8px 10px; border:2px solid transparent; border-radius:7px; background:transparent; color:#a9bfd9;
+    box-shadow:none; font-size:12px; }
+  #langSel button:hover { transform:none; background:rgba(255,255,255,.09); }
+  #langSel button.on { border-color:var(--ink); background:var(--gold); color:var(--ink); box-shadow:2px 2px 0 var(--ink); }
+  .menu-note { margin-top:20px; color:#7793b2; font:700 11px/1.5 system-ui,sans-serif; letter-spacing:.08em; }
+  .menu-poster { min-height:560px; position:relative; display:grid; place-items:center; border:var(--line); border-radius:24px;
+    overflow:hidden; background:linear-gradient(155deg,var(--gold) 0 32%,var(--coral) 32% 63%,#7156ff 63%); box-shadow:12px 14px 0 var(--ink); transform:rotate(2deg); }
+  .menu-poster::before { content:""; position:absolute; inset:0; opacity:.22; background:radial-gradient(circle,#fff 1.5px,transparent 2px); background-size:20px 20px; }
+  .menu-poster::after { content:""; position:absolute; width:440px; height:440px; border:34px solid rgba(255,255,255,.18); border-radius:50%; }
+  .poster-top { position:absolute; z-index:2; top:22px; left:24px; right:24px; display:flex; justify-content:space-between;
+    color:var(--ink); font-size:12px; font-weight:1000; letter-spacing:.12em; }
+  .poster-cup { position:relative; z-index:2; font-size:clamp(120px,16vw,220px); line-height:1; filter:drop-shadow(12px 14px 0 rgba(16,24,43,.88)); animation:cupFloat 3.2s ease-in-out infinite; }
+  .poster-ball { position:absolute; z-index:3; right:8%; top:22%; font-size:66px; filter:drop-shadow(6px 7px 0 var(--ink)); animation:ballOrbit 4s ease-in-out infinite; }
+  @keyframes ballOrbit { 0%,100%{transform:translate(0,0) rotate(-12deg)} 50%{transform:translate(-34px,-22px) rotate(28deg)} }
+  .poster-badge { position:absolute; z-index:3; bottom:28px; left:24px; right:24px; padding:15px 18px; border:var(--line); border-radius:10px;
+    color:#fff; background:var(--ink); font-size:20px; font-weight:900; line-height:1.05; text-align:left; box-shadow:5px 5px 0 rgba(255,255,255,.35); }
+  .poster-badge small { display:block; margin-top:7px; color:var(--gold); font-size:11px; letter-spacing:.16em; }
+
+  #select { align-items:stretch; justify-content:flex-start; padding:max(22px,env(safe-area-inset-top)) clamp(22px,4vw,58px) max(24px,env(safe-area-inset-bottom));
+    background:radial-gradient(circle at 54% 30%,rgba(104,87,255,.27),transparent 24%),linear-gradient(135deg,#071426,#10294a); }
+  #select::before { content:""; position:absolute; inset:0; z-index:-1; opacity:.07;
+    background:radial-gradient(circle,#fff 1px,transparent 1.5px); background-size:18px 18px; }
+  .select-header { width:min(1320px,100%); margin:0 auto 18px; display:flex; align-items:flex-end; justify-content:space-between; gap:18px; }
+  #select h2 { margin:5px 0 0; color:#fff; font-size:clamp(30px,3.5vw,50px); line-height:1; transform:none; text-shadow:4px 4px 0 var(--ink); }
+  #select .tip { margin:7px 0 0; padding:0; border:0; background:none; color:#9ab5d1; font:700 13px/1.4 system-ui,sans-serif; }
+  .select-back { width:48px; padding:0; border:2px solid rgba(255,255,255,.24); border-radius:10px; color:#fff; background:rgba(255,255,255,.08); cursor:pointer; font-size:20px; }
+  .select-shell { width:min(1320px,100%); min-height:0; flex:1; margin:auto; display:grid; grid-template-columns:220px minmax(360px,1fr) 330px; gap:18px; }
+  #roster.team-rail { width:auto; display:flex; flex-direction:column; gap:8px; overflow:auto; padding:3px 7px 9px 3px; }
+  .team-option { min-height:58px; width:100%; display:grid; grid-template-columns:40px 1fr 26px; align-items:center; gap:8px; padding:7px 10px;
+    border:2px solid rgba(255,255,255,.16); border-radius:10px; background:rgba(255,255,255,.07); color:#dceaff; cursor:pointer; text-align:left; transition:transform .18s,background .18s; }
+  .team-option:hover { transform:translateX(4px); background:rgba(255,255,255,.13); }
+  .team-option.sel { border:var(--line); background:var(--gold); color:var(--ink); box-shadow:4px 4px 0 var(--ink); transform:translateX(3px); }
+  .team-option .flag { font-size:25px; line-height:1; }
+  .team-option strong { display:block; font-size:14px; line-height:1.05; }
+  .team-option small { display:block; margin-top:3px; opacity:.65; font:800 9px/1 system-ui,sans-serif; letter-spacing:.08em; }
+  .team-option .number { opacity:.55; font-size:18px; font-weight:1000; text-align:right; }
+  .team-hero { min-height:500px; position:relative; display:flex; align-items:flex-end; padding:clamp(24px,4vw,50px); overflow:hidden;
+    border:var(--line); border-radius:18px; background:linear-gradient(150deg,var(--team-color,#69cfff) 0 54%,var(--coral) 54%); box-shadow:9px 10px 0 var(--ink); }
+  .team-hero::before { content:""; position:absolute; inset:0; opacity:.18; background:radial-gradient(circle,#fff 1px,transparent 1.5px); background-size:17px 17px; }
+  .hero-watermark { position:absolute; right:-8%; top:2%; color:rgba(255,255,255,.16); font-size:clamp(140px,18vw,260px); line-height:1; }
+  .hero-index { position:absolute; top:22px; left:24px; z-index:3; padding:6px 10px; border:var(--line); border-radius:7px; background:#fff; color:var(--ink);
+    box-shadow:3px 3px 0 var(--ink); font:1000 11px/1 system-ui,sans-serif; letter-spacing:.12em; transform:rotate(-2deg); }
+  .hero-bean { position:absolute; z-index:2; width:clamp(150px,18vw,245px); height:clamp(230px,27vw,370px); left:55%; bottom:58px; transform:translateX(-50%) rotate(3deg);
+    background:var(--team-color); border:6px solid var(--ink); border-radius:48% 48% 28% 28% / 35% 35% 18% 18%; box-shadow:16px 18px 0 rgba(16,24,43,.88); }
+  .hero-bean .beye { position:absolute; top:25%; width:20%; height:18%; border:4px solid var(--ink); border-radius:50%; background:#fff; }
+  .hero-bean .beye.l { left:22%; } .hero-bean .beye.r { right:22%; }
+  .hero-bean .beye::after { content:""; position:absolute; right:16%; top:34%; width:38%; aspect-ratio:1; border-radius:50%; background:var(--ink); }
+  .hero-bean .bshorts { position:absolute; left:-2px; right:-2px; bottom:-2px; height:27%; border-top:5px solid #fff; border-radius:0 0 30% 30%; background:var(--team-shorts); }
+  .hero-bean .shirt-number { position:absolute; left:50%; top:50%; transform:translateX(-50%); color:#fff; font-size:clamp(34px,5vw,68px); font-weight:1000;
+    text-shadow:3px 3px 0 var(--ink); }
+  .hero-copy { position:relative; z-index:4; max-width:80%; color:#fff; text-align:left; text-shadow:4px 4px 0 var(--ink); }
+  .hero-country { font-size:clamp(42px,5.2vw,76px); font-weight:1000; line-height:.84; letter-spacing:-.04em; text-transform:uppercase; }
+  .hero-star { margin-top:10px; font-size:clamp(18px,2vw,26px); font-weight:900; }
+  .team-sheet { min-height:500px; display:flex; flex-direction:column; padding:22px; border:var(--line); border-radius:16px; background:var(--paper); color:var(--ink); box-shadow:8px 9px 0 var(--ink); text-align:left; }
+  .sheet-label { color:#758198; font:900 10px/1 system-ui,sans-serif; letter-spacing:.15em; }
+  #teamStats { display:grid; gap:14px; margin-top:18px; }
+  .sheet-stat-head { display:flex; justify-content:space-between; font-size:13px; font-weight:900; }
+  .sheet-bar { height:12px; margin-top:6px; overflow:hidden; border:2px solid var(--ink); border-radius:9px; background:#dce2e5; }
+  .sheet-bar i { display:block; height:100%; background:var(--gold); }
+  .sheet-bar.acc i { background:var(--sky); }
+  #teamPerk { margin-top:20px; padding:13px; border:var(--line); border-radius:9px; background:var(--gold); box-shadow:4px 4px 0 var(--ink); transform:rotate(-1deg); }
+  #teamPerk strong { display:block; font-size:16px; }
+  #teamPerk span { display:block; margin-top:4px; color:#4a5263; font:700 11px/1.35 system-ui,sans-serif; }
+  #teamSquad { margin-top:22px; }
+  .squad-list { display:flex; flex-wrap:wrap; gap:7px; margin-top:9px; }
+  .squad-player { padding:6px 8px; border:2px solid #cbd1d6; border-radius:7px; background:#fff; font:800 11px/1 system-ui,sans-serif; }
+  .squad-player:first-child { border-color:var(--ink); background:var(--coral); color:#fff; box-shadow:2px 2px 0 var(--ink); }
+  #selCount { min-height:22px; margin:auto 0 10px; color:#5d687a; font:800 12px/1.4 system-ui,sans-serif; }
+  #btnKickoff { width:100%; }
+
+  #score { top:max(14px,env(safe-area-inset-top)); min-width:min(560px,70vw); padding:8px 18px; border:var(--line); border-radius:11px;
+    background:rgba(7,20,38,.9); box-shadow:5px 5px 0 var(--ink); backdrop-filter:blur(10px); }
+  #score .tn { color:#fff; font-size:12px; letter-spacing:.05em; }
+  #score .vs { color:var(--gold); font-size:28px; }
+  .dot { width:14px; height:7px; border-radius:3px; border:1px solid rgba(255,255,255,.22); }
+  #stageTag { top:max(14px,env(safe-area-inset-top)); left:14px; min-height:44px; display:flex; align-items:center; padding:8px 13px;
+    border:var(--line); border-radius:9px; background:var(--gold); color:var(--ink); box-shadow:4px 4px 0 var(--ink); }
+  #wind { top:max(14px,env(safe-area-inset-top)); right:66px; min-height:44px; align-items:center; padding:8px 13px; border:var(--line); border-radius:9px;
+    background:var(--sky); color:var(--ink); box-shadow:4px 4px 0 var(--ink); }
+  #wind.strong { background:#ff9d55; color:var(--ink); border-color:var(--ink); }
+  #btnSound { top:max(14px,env(safe-area-inset-top)); right:14px; width:44px; height:44px; border:var(--line); border-radius:9px;
+    background:#fff; color:var(--ink); box-shadow:4px 4px 0 var(--ink); }
+  #btnSound.on { background:var(--green); border-color:var(--ink); }
+  #missionCard { position:fixed; left:16px; top:calc(max(14px,env(safe-area-inset-top)) + 66px); width:220px; display:none; padding:13px 14px;
+    border:var(--line); border-radius:10px; background:var(--paper); color:var(--ink); box-shadow:5px 5px 0 var(--ink); transform:rotate(-1deg); }
+  #missionCard.show { display:block; }
+  #missionCard.complete { background:var(--green); animation:missionPop .45s cubic-bezier(.2,1.7,.4,1); }
+  #missionTitle { font:1000 10px/1 system-ui,sans-serif; letter-spacing:.13em; color:#677186; }
+  #missionText { margin-top:7px; font-size:14px; font-weight:900; line-height:1.2; }
+  @keyframes missionPop { 50%{transform:rotate(2deg) scale(1.12)} }
+  #combo { left:18px; top:50%; padding:10px; border:var(--line); border-radius:10px; background:rgba(7,20,38,.88); box-shadow:5px 5px 0 var(--ink); filter:none; }
+  #combo .fire { font-size:23px; } #combo #comboN { font-size:36px; } #combo .lbl { color:var(--gold); }
+  #hint { max-width:min(680px,86vw); overflow:hidden; text-overflow:ellipsis; bottom:calc(114px + env(safe-area-inset-bottom));
+    border:2px solid rgba(255,255,255,.25); border-radius:10px; background:rgba(7,20,38,.9); color:#fff; }
+  #shooterTag { bottom:calc(158px + env(safe-area-inset-bottom)); border:var(--line); border-radius:9px; background:var(--gold); color:var(--ink); box-shadow:4px 4px 0 var(--ink); }
+  #powerBar,#curveBar { border:var(--line); border-radius:10px; box-shadow:5px 5px 0 var(--ink); }
+  #btnChip,#btnStraight { min-height:44px; border:var(--line); border-radius:9px; box-shadow:4px 4px 0 var(--ink); }
+  #end { background:rgba(4,14,27,.94); }
+  #endStats .st { border:var(--line); border-radius:9px; background:var(--paper); color:var(--ink); box-shadow:4px 4px 0 var(--ink); }
+  #endStats .v { color:var(--ink); } #endStats .k { color:#667085; }
+
+  @media (max-width:1050px) {
+    .select-shell { grid-template-columns:180px minmax(330px,1fr) 290px; }
+    .team-sheet { padding:17px; }
+    .hero-country { font-size:48px; }
+  }
+  @media (max-width:820px) {
+    html,body { overflow:auto; touch-action:pan-y; }
+    #menu,#select { position:absolute; min-height:100%; overflow-y:auto; }
+    .menu-shell { grid-template-columns:1fr; gap:34px; }
+    .menu-copy { order:2; } .menu-poster { min-height:330px; order:1; }
+    #menu h1 { font-size:50px; } .poster-cup { font-size:130px; }
+    .menu-actions { align-items:stretch; flex-direction:column; } #langSel { width:100%; } #langSel button { flex:1; }
+    .select-header { align-items:center; }
+    .select-shell { display:flex; flex:none; flex-direction:column; }
+    #roster.team-rail { flex-direction:row; overflow-x:auto; padding-bottom:9px; }
+    .team-option { min-width:150px; }
+    .team-hero { min-height:420px; }
+    .team-sheet { min-height:auto; }
+    #score { min-width:58vw; transform:translateX(-50%) scale(.88); transform-origin:top center; }
+    #stageTag { top:70px; } #wind { top:70px; right:66px; } #btnSound { top:70px; }
+    #missionCard { top:126px; width:190px; }
+  }
+  @media (max-width:520px) {
+    #menu { padding-inline:18px; } #menu .feat { grid-template-columns:1fr; }
+    #menu h1 { font-size:44px; } .menu-poster { min-height:280px; }
+    #select { padding-inline:14px; }
+    .team-hero { min-height:360px; padding:24px; }
+    .hero-bean { width:150px; height:230px; left:62%; }
+    .hero-country { font-size:38px; max-width:260px; }
+    #missionCard { top:124px; left:10px; width:170px; }
+    #hint { white-space:normal; text-align:center; font-size:12px; }
+    #endStats { display:grid; grid-template-columns:repeat(2,1fr); }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
+  }
+</style>
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -281,19 +456,36 @@
     <div id="powerBar"><div class="redmark"></div><div id="powerCursor"></div></div>
   </div>
   <div id="combo"><div class="fire">🔥</div><span id="comboN">2</span><div class="lbl" id="comboLbl">连击</div></div>
+  <div id="missionCard">
+    <div id="missionTitle">MATCH MISSION</div>
+    <div id="missionText"></div>
+  </div>
 </div>
 <div id="msg"></div>
 <div id="flash"></div>
 
 <div id="menu" class="screen">
-  <div class="cup">🏆</div>
-  <h1 id="menuTitle">世界杯点球大战</h1>
-  <div class="sub">3D PENALTY SHOOTOUT</div>
-  <div class="feat"><span id="feat1"></span><span id="feat2"></span><span id="feat3"></span><span id="feat4"></span></div>
-  <div id="langSel">
-    <button data-l="en">🇬🇧 English</button><button data-l="zh">🇨🇳 中文</button><button data-l="ja">🇯🇵 日本語</button>
+  <div class="menu-shell">
+    <section class="menu-copy">
+      <div class="eyebrow">★ WORLD CUP · ROAD TO GLORY</div>
+      <h1 id="menuTitle">世界杯点球大战</h1>
+      <div class="sub">3D PENALTY SHOOTOUT · NO DOWNLOAD</div>
+      <div class="feat"><span id="feat1"></span><span id="feat2"></span><span id="feat3"></span><span id="feat4"></span></div>
+      <div class="menu-actions">
+        <button class="bigbtn" id="btnStart">开始游戏</button>
+        <div id="langSel" aria-label="Language">
+          <button data-l="en" aria-label="English">EN</button><button data-l="zh" aria-label="中文">中</button><button data-l="ja" aria-label="日本語">日</button>
+        </div>
+      </div>
+      <p class="menu-note">MOUSE / TOUCH TO AIM · SPACE TO LOCK · BEST WITH SOUND</p>
+    </section>
+    <section class="menu-poster" aria-hidden="true">
+      <div class="poster-top"><span>2026 EDITION</span><span>8 NATIONS</span></div>
+      <div class="poster-ball">⚽</div>
+      <div class="poster-cup">🏆</div>
+      <div class="poster-badge">THREE MATCHES. ONE TROPHY.<small>CURVE · READ · SAVE · CELEBRATE</small></div>
+    </section>
   </div>
-  <button class="bigbtn" id="btnStart">开始游戏</button>
 </div>
 
 <div id="vsCard" class="hidden">
@@ -304,11 +496,22 @@
 </div>
 
 <div id="select" class="screen hidden">
-  <h2 id="selTitle">选择你的球队</h2>
-  <div class="tip" id="selTip">每支球队由一名球星领衔</div>
-  <div id="roster"></div>
-  <div id="selCount">&nbsp;</div>
-  <button class="bigbtn" id="btnKickoff" disabled>开始夺冠之旅</button>
+  <header class="select-header">
+    <div><div class="eyebrow">CHOOSE YOUR CHAMPION</div><h2 id="selTitle">选择你的球队</h2><div class="tip" id="selTip">每支球队由一名球星领衔</div></div>
+    <button class="select-back" id="btnBack" aria-label="Back">←</button>
+  </header>
+  <div class="select-shell">
+    <nav id="roster" class="team-rail" aria-label="Teams"></nav>
+    <section id="teamHero" class="team-hero" aria-live="polite"></section>
+    <aside class="team-sheet">
+      <div class="sheet-label">TEAM RATINGS</div>
+      <div id="teamStats"></div>
+      <div id="teamPerk"></div>
+      <div id="teamSquad"></div>
+      <div id="selCount">&nbsp;</div>
+      <button class="bigbtn" id="btnKickoff" disabled>开始夺冠之旅</button>
+    </aside>
+  </div>
 </div>
 
 <div id="end" class="screen hidden">
@@ -319,6 +522,7 @@
     <div class="st"><div class="v" id="stGoals">0</div><div class="k" id="kGoals">进球/主罚</div></div>
     <div class="st"><div class="v" id="stSaves">0</div><div class="k" id="kSaves">神扑次数</div></div>
     <div class="st"><div class="v" id="stCombo">0</div><div class="k" id="kCombo">最高连击</div></div>
+    <div class="st"><div class="v" id="stMissions">0</div><div class="k" id="kMissions">完成任务</div></div>
   </div>
   <button class="bigbtn" id="btnAgain">再来一局</button>
 </div>
@@ -330,6 +534,7 @@
 <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { createMatchMission, updateMission } from './game-missions.js';
 
 /* ============================== 数据 ============================== */
 // 球员外观:[名字, 肤色idx, 发色idx, 球衣号]  (idx 见 SKIN_TONES / HAIR_TONES)
@@ -445,6 +650,13 @@ const UI = {
   slip:      ['脚下一滑!','Slipped!','足が滑った!'],
   kSaves:    ['神扑次数','Saves','セーブ数'],
   kCombo:    ['最高连击','Best Combo','最大連撃'],
+  kMissions: ['完成任务','Missions','ミッション'],
+  missionTitle:['本场任务','MATCH MISSION','試合ミッション'],
+  missionDone:['任务完成!','MISSION COMPLETE!','ミッション達成!'],
+  missionCombo:['连续打进 2 球','Score 2 in a row','2本連続で決める'],
+  missionCurve:['用弧线球破门','Score with a curve','カーブでゴール'],
+  missionSave:['完成 1 次扑救','Make 1 save','1本セーブする'],
+  missionCaptain:['用队长取得进球','Score with your captain','キャプテンで得点'],
 };
 const t = k => (UI[k] || [k])[LI()] ?? UI[k]?.[0] ?? k;
 const STAGE_I18N = [['1/4 决赛','Quarter-Final','準々決勝'],['半决赛','Semi-Final','準決勝'],['决赛','Final','決勝']];
@@ -1141,6 +1353,7 @@ const G = {
   panenka:false,         // 本球选择勺子吊射
   keeperDistracted:false,// 门将开小差(随机事件)
   statSaves:0, statGoals:0, statKicks:0,   // 整届杯赛累计数据
+  mission:null, missionCompleted:0,
 };
 
 const raycaster = new THREE.Raycaster();
@@ -1208,39 +1421,75 @@ function renderScore() {
   }
 }
 
+const MISSION_TEXT_KEYS = {
+  combo2:'missionCombo', curve_goal:'missionCurve', save:'missionSave', captain_goal:'missionCaptain',
+};
+function renderMission() {
+  const card = $('missionCard');
+  if (!G.mission) { card.classList.remove('show','complete'); return; }
+  $('missionTitle').textContent = G.mission.complete ? t('missionDone') : t('missionTitle');
+  $('missionText').textContent = t(MISSION_TEXT_KEYS[G.mission.type]);
+  card.classList.add('show');
+  card.classList.toggle('complete', G.mission.complete);
+}
+function progressMission(event) {
+  const previous = G.mission;
+  const next = updateMission(previous, event);
+  if (next === previous) return;
+  G.mission = next;
+  if (next.complete) {
+    G.missionCompleted++;
+    renderMission();
+    setTimeout(() => { if (G.state !== 'END') showMsg(t('missionDone'), '#55ed8b', 1400); }, 700);
+  }
+}
+
 /* ---- 选队界面 ---- */
 let pickedTeam = null;
 function buildTeams() {
   const root = $('roster'); root.innerHTML = '';
-  for (const t of TEAMS) {
-    const c = document.createElement('div');
-    c.className = 'card'; c.dataset.id = t.id;
-    const hx = c6 => '#' + c6.toString(16).padStart(6, '0');
-    c.style.setProperty('--tc', hx(t.jersey));
-    c.style.setProperty('--ts', hx(t.shorts));
+  TEAMS.forEach((team, index) => {
+    const c = document.createElement('button');
+    c.type = 'button'; c.className = 'team-option'; c.dataset.id = team.id;
     c.innerHTML = `
-      <div class="cardTop">
-        <span class="fl">${t.flag}</span>
-        <div class="bean"><div class="beye l"></div><div class="beye r"></div><div class="bshorts"></div></div>
-      </div>
-      <div class="nm">${tName(t.country)}</div>
-      <div class="star">⭐ ${tName(t.star)}</div>
-      <div class="st">
-        <div class="strow"><span>⚡</span><div class="bar"><i style="width:${t.pow}%"></i></div><b>${t.pow}</b></div>
-        <div class="strow"><span>🎯</span><div class="bar acc"><i style="width:${t.acc}%"></i></div><b>${t.acc}</b></div>
-      </div>
-      <div class="perk" title="${tPerkDesc(t.perk)}">✨ ${tName(t.perkName)}</div>`;
+      <span class="flag">${team.flag}</span>
+      <span><strong>${tName(team.country)}</strong><small>${tName(team.star)}</small></span>
+      <span class="number">${String(index + 1).padStart(2,'0')}</span>`;
     c.onclick = () => {
       AudioMan.init(); AudioMan.tick();
-      pickedTeam = pickedTeam === t ? null : t;
+      pickedTeam = team;
       refreshTeams();
     };
     root.appendChild(c);
-  }
+  });
 }
 function refreshTeams() {
   for (const c of $('roster').children)
     c.classList.toggle('sel', pickedTeam && c.dataset.id === pickedTeam.id);
+  if (!pickedTeam) {
+    $('teamHero').innerHTML = '';
+    $('teamStats').innerHTML = '';
+    $('teamPerk').innerHTML = '';
+    $('teamSquad').innerHTML = '';
+    $('selCount').textContent = ' ';
+    $('btnKickoff').disabled = true;
+    return;
+  }
+  const index = TEAMS.indexOf(pickedTeam);
+  const hx = c6 => '#' + c6.toString(16).padStart(6, '0');
+  const hero = $('teamHero');
+  hero.style.setProperty('--team-color', hx(pickedTeam.jersey));
+  hero.style.setProperty('--team-shorts', hx(pickedTeam.shorts));
+  hero.innerHTML = `
+    <div class="hero-watermark">${pickedTeam.flag}</div>
+    <div class="hero-index">${String(index + 1).padStart(2,'0')} / ${String(TEAMS.length).padStart(2,'0')}</div>
+    <div class="hero-bean"><div class="beye l"></div><div class="beye r"></div><div class="shirt-number">${pickedTeam.squad[0][3]}</div><div class="bshorts"></div></div>
+    <div class="hero-copy"><div class="hero-country">${tName(pickedTeam.country)}</div><div class="hero-star">★ ${tName(pickedTeam.star)}</div></div>`;
+  $('teamStats').innerHTML = `
+    <div><div class="sheet-stat-head"><span>⚡ ${t('pow')}</span><b>${pickedTeam.pow}</b></div><div class="sheet-bar"><i style="width:${pickedTeam.pow}%"></i></div></div>
+    <div><div class="sheet-stat-head"><span>◎ ${t('acc')}</span><b>${pickedTeam.acc}</b></div><div class="sheet-bar acc"><i style="width:${pickedTeam.acc}%"></i></div></div>`;
+  $('teamPerk').innerHTML = `<strong>✦ ${tName(pickedTeam.perkName)}</strong><span>${tPerkDesc(pickedTeam.perk)}</span>`;
+  $('teamSquad').innerHTML = `<div class="sheet-label">PENALTY LINEUP</div><div class="squad-list">${pickedTeam.squad.map(([name,,,num]) => `<span class="squad-player">${num} · ${tName(name)}</span>`).join('')}</div>`;
   $('selCount').textContent = pickedTeam
     ? tf('selCount', pickedTeam.flag, tName(pickedTeam.country), tName(pickedTeam.star)) : ' ';
   $('btnKickoff').disabled = !pickedTeam;
@@ -1266,7 +1515,9 @@ function applyLang() {
   $('kGoals').textContent = t('kGoals');
   $('kSaves').textContent = t('kSaves');
   $('kCombo').textContent = t('kCombo');
-  buildTeams(); refreshTeams();
+  $('kMissions').textContent = t('kMissions');
+  $('missionTitle').textContent = t('missionTitle');
+  buildTeams(); refreshTeams(); renderMission();
 }
 for (const b of document.querySelectorAll('#langSel button')) {
   b.onclick = () => { AudioMan.init(); AudioMan.tick(); LANG = b.dataset.l; applyLang(); };
@@ -1647,6 +1898,7 @@ const trailMeshes = [], trailHist = [];
 async function startCup() {
   G.state = 'PLAY';        // 离开菜单环绕运镜
   G.combo = 0; G.bestCombo = 0; G.statSaves = 0; G.statGoals = 0; G.statKicks = 0;
+  G.mission = null; G.missionCompleted = 0;
   $('combo').classList.remove('show');
   G.myTeam = pickedTeam;
   G.opponents = TEAMS.filter(t => t !== pickedTeam).sort(() => Math.random() - .5).slice(0, 3);
@@ -1660,6 +1912,8 @@ async function nextMatch() {
   G.teamA = G.myTeam; G.teamB = opp;
   G.kicksA = []; G.kicksB = [];
   G.round = 0; G.sudden = false;
+  G.mission = createMatchMission();
+  renderMission();
   $('tnA').textContent = `${G.myTeam.flag} ${tName(G.myTeam.country)}`;
   $('tnB').textContent = `${opp.flag} ${tName(opp.country)}`;
   $('stageTag').style.display = 'block';
@@ -1840,6 +2094,7 @@ async function playerTurn(team) {
   renderScore();
   announce(shot.result, true, powerV, false, shot.panenka ? 'panenka' : null);
   updateCombo(goalIn);
+  progressMission({ kind:goalIn ? 'goal' : 'miss', curve:shot.curve, captain:player.isStar });
   setShooterTag('');
   await wait(1500);
 }
@@ -1943,6 +2198,7 @@ async function aiTurn(team) {
   if (result === 'SAVE') G.statSaves++;
   G.kicksB.push(goalIn);
   renderScore();
+  if (result === 'SAVE') progressMission({ kind:'save' });
   announce(result, false, 0, !dz, plan.panenka ? 'panenka' : null);
   setShooterTag('');
   await wait(1500);
@@ -2034,6 +2290,7 @@ async function endMatch() {
     $('stGoals').textContent = `${G.statGoals}/${G.statKicks}`;
     $('stSaves').textContent = G.statSaves;
     $('stCombo').textContent = G.bestCombo;
+    $('stMissions').textContent = G.missionCompleted;
     $('end').classList.remove('hidden');
   }, 1200);
 }
@@ -2127,6 +2384,15 @@ addEventListener('pointerdown', e => {
   }
 });
 addEventListener('keydown', e => {
+  if (G.state === 'SELECT' && ['ArrowLeft','ArrowUp','ArrowRight','ArrowDown'].includes(e.code)) {
+    e.preventDefault();
+    const current = Math.max(0, TEAMS.indexOf(pickedTeam));
+    const direction = ['ArrowLeft','ArrowUp'].includes(e.code) ? -1 : 1;
+    pickedTeam = TEAMS[(current + direction + TEAMS.length) % TEAMS.length];
+    AudioMan.tick(); refreshTeams();
+    document.querySelector(`.team-option[data-id="${pickedTeam.id}"]`)?.focus();
+    return;
+  }
   if (e.code !== 'Space') return;
   if (G.state === 'AIM') lockAim();
   else if (G.state === 'CURVE') { G.curveActive = false; G.curveLocked = true; }
@@ -2137,8 +2403,15 @@ addEventListener('keydown', e => {
 $('btnStart').onclick = () => {
   AudioMan.init(); AudioMan.swell(0.18, 2); AudioMan.tick();
   G.state = 'SELECT';
+  if (!pickedTeam) pickedTeam = TEAMS[0];
+  refreshTeams();
   $('menu').classList.add('hidden');
   $('select').classList.remove('hidden');
+};
+$('btnBack').onclick = () => {
+  AudioMan.tick(); G.state = 'MENU';
+  $('select').classList.add('hidden');
+  $('menu').classList.remove('hidden');
 };
 $('btnKickoff').onclick = () => { AudioMan.tick(); startCup(); };
 $('btnStraight').onclick = () => {
@@ -2155,6 +2428,7 @@ $('btnAgain').onclick = () => {
   $('stageTag').style.display = 'none';
   $('wind').style.display = 'none';
   $('combo').classList.remove('show');
+  $('missionCard').classList.remove('show','complete');
   $('select').classList.remove('hidden');
   G.state = 'SELECT';
 };

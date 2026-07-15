@@ -20,9 +20,17 @@ test('a straight goal does not complete the curve mission', () => {
   assert.equal(updateMission(mission, { kind:'goal', curve:0.2 }).complete, false);
 });
 
-test('a two-goal combo completes the combo mission', () => {
-  const mission = createMatchMission(() => 0);
-  assert.equal(updateMission(mission, { kind:'goal', combo:2 }).complete, true);
+test('two consecutive goals complete the combo mission', () => {
+  const firstGoal = updateMission(createMatchMission(() => 0), { kind:'goal' });
+  assert.equal(firstGoal.progress, 1);
+  assert.equal(updateMission(firstGoal, { kind:'goal' }).complete, true);
+});
+
+test('a miss resets combo mission progress', () => {
+  const firstGoal = updateMission(createMatchMission(() => 0), { kind:'goal' });
+  const missed = updateMission(firstGoal, { kind:'miss' });
+  assert.equal(missed.progress, 0);
+  assert.equal(updateMission(missed, { kind:'goal' }).complete, false);
 });
 
 test('a save completes the save mission', () => {
