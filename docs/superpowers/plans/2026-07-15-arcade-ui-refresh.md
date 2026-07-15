@@ -16,7 +16,7 @@
 - Create: `game-missions.js`
 - Create: `tests/game-missions.test.mjs`
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 ```js
 import test from 'node:test';
@@ -40,13 +40,13 @@ test('combo, save and captain events complete matching missions', () => {
 });
 ```
 
-- [ ] **Step 2: 运行测试并确认失败**
+- [x] **Step 2: 运行测试并确认失败**
 
 Run: `node --test tests/game-missions.test.mjs`
 
 Expected: FAIL，提示找不到 `game-missions.js`。
 
-- [ ] **Step 3: 实现最小状态机**
+- [x] **Step 3: 实现最小状态机**
 
 ```js
 export const MISSION_TYPES = ['combo2', 'curve_goal', 'save', 'captain_goal'];
@@ -67,7 +67,7 @@ export function updateMission(mission, event) {
 }
 ```
 
-- [ ] **Step 4: 运行测试并确认通过**
+- [x] **Step 4: 运行测试并确认通过**
 
 Run: `node --test tests/game-missions.test.mjs`
 
@@ -197,4 +197,3 @@ Run: `python3 -m http.server 8612`
 - [ ] **Step 4: 浏览器窄屏验收**
 
 在 390×844 检查无横向滚动，球队导航可横向滚动，开始按钮、语言按钮和局内操作按钮均可点击。
-
